@@ -4,7 +4,7 @@ class Donation {
   final double amount;
   final List<String> items;
   final String date;
-  final String status;
+  String status;
   final String? message;
 
   Donation({

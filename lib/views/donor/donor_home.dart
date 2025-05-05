@@ -35,6 +35,8 @@ class DonorHomeScreen extends StatefulWidget {
 }
 
 class _DonorHomeScreenState extends State<DonorHomeScreen> {
+  String _enteredCode = '';
+  String? _codeErrorMessage;
   int _currentIndex = 0;
   final List<Request> _requests = Request.mockRequests();
   final List<Donation> _donations = Donation.mockDonations();
@@ -146,18 +148,49 @@ class _DonorHomeScreenState extends State<DonorHomeScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
+          _buildProfileInfoItem(Icons.person, _currentUser.name),
+          _buildProfileInfoItem(Icons.email, _currentUser.email),
           _buildProfileInfoItem(Icons.phone, _currentUser.phone),
-          _buildProfileInfoItem(Icons.location_on, _currentUser.address),
+          _buildProfileInfoItem(Icons.home, _currentUser.address),
+          _buildProfileInfoItem(Icons.badge, _currentUser.id),
           const Spacer(),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, AppRoutes.login);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text('Log Out'),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, AppRoutes.login);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Log Out'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (_) => AlertDialog(
+                          title: const Text('Contact Us'),
+                          content: const Text(
+                            'For support, email us at:\nsupport@unitedhope.org\n\nOr call: +961-71-123456',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                  );
+                },
+                icon: const Icon(Icons.contact_support),
+                label: const Text('Contact Us'),
+              ),
+            ],
           ),
         ],
       ),
@@ -179,7 +212,25 @@ class _DonorHomeScreenState extends State<DonorHomeScreen> {
                 request.title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
+
               const SizedBox(height: 8),
+
+              // 🔽 Added fields here before category
+              Text(
+                'Recipient Name: John Doe',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Recipient Phone: +961-70123456',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Area: Beirut, Lebanon',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 8),
+
               Text(
                 'Category: ${request.category}',
                 style: Theme.of(context).textTheme.bodyMedium,
@@ -211,10 +262,31 @@ class _DonorHomeScreenState extends State<DonorHomeScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        final donation = Donation(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          requestTitle: '',
+                          amount: 0,
+                          items: ['Auto-added'],
+                          date: DateTime.now().toIso8601String(),
+                          status: 'Pending',
+                          message: null,
+                        );
+
+                        setState(() {
+                          request.status = 'Fulfilled';
+                          _donations.add(donation);
+                        });
+
                         Navigator.pop(context);
-                        _showCreateDonationDialog(request: request);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Donation added successfully!'),
+                          ),
+                        );
                       },
-                      child: const Text('Donate'),
+
+                      child: const Text('Add to Donations'),
                     ),
                   ),
                 ],
@@ -332,6 +404,9 @@ class _DonorHomeScreenState extends State<DonorHomeScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
+              _buildDonationDetailItem('Recipient Name', 'John Doe'),
+              _buildDonationDetailItem('Phone number', '+961-70123456'),
+              _buildDonationDetailItem('Location', 'Beirut, Lebanon'),
               _buildDonationDetailItem('Amount', '\$${donation.amount}'),
               _buildDonationDetailItem('Items', donation.items.join(', ')),
               _buildDonationDetailItem('Date', donation.date),
@@ -345,10 +420,56 @@ class _DonorHomeScreenState extends State<DonorHomeScreen> {
                 ),
               ),
               Text(donation.message ?? 'No message'),
+              if (donation.status == 'Pending') ...[
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Enter the code',
+                    border: OutlineInputBorder(),
+                    errorText: _codeErrorMessage,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _enteredCode = value;
+                      _codeErrorMessage = null; // Clear error on new input
+                    });
+                  },
+                ),
+              ],
+
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  if (donation.status == 'Pending')
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            if (_enteredCode == '1234') {
+                              donation.status = 'Delivered';
+                              _codeErrorMessage = null;
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Donation was done!'),
+                                ),
+                              );
+                            } else {
+                              _codeErrorMessage = 'Incorrect code';
+                            }
+                          });
+                        },
+                        child: const Text('Donate'),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),

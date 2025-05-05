@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/constants.dart';
 import 'package:mobile_project/core/routes.dart';
+import 'package:mobile_project/views/admin/admin_home.dart';
+import 'package:mobile_project/models/request.dart';
+import 'package:mobile_project/models/donation.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +25,23 @@ class _LoginScreenState extends State<LoginScreen> {
     await Future.delayed(const Duration(seconds: 2));
     setState(() => _isLoading = false);
 
-    Navigator.pushReplacementNamed(context, AppRoutes.donorHome);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email == 'admin@admin.com' && password == 'admin123') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder:
+              (_) => AdminHomeScreen(
+                requests: Request.mockRequests(),
+                donations: Donation.mockDonations(),
+              ),
+        ),
+      );
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.donorHome);
+    }
   }
 
   @override

@@ -1,5 +1,7 @@
 class Request {
   final String id;
+  final String recipientName;
+  final String recipientPhone;
   final String title;
   final String description;
   final String category;
@@ -10,6 +12,8 @@ class Request {
 
   Request({
     required this.id,
+    required this.recipientName,
+    required this.recipientPhone,
     required this.title,
     required this.description,
     required this.category,
@@ -23,6 +27,8 @@ class Request {
     return [
       Request(
         id: '1',
+        recipientName: 'Ahmad',
+        recipientPhone: '76182991',
         title: 'Food Supplies for Family of 5',
         description: 'Need basic food items for my family in Beirut',
         category: 'Food',
@@ -33,6 +39,8 @@ class Request {
       ),
       Request(
         id: '2',
+        recipientName: 'Ahmad',
+        recipientPhone: '76182991',
         title: 'Medical Supplies for Clinic',
         description: 'Our clinic needs basic medicines and first aid supplies',
         category: 'Medical',

@@ -20,7 +20,9 @@ class DonationCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                donation.requestTitle,
+                donation.requestTitle.isNotEmpty
+                    ? donation.requestTitle
+                    : 'General Donation',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
