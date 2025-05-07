@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_project/views/auth/login_screen.dart';
-import 'package:mobile_project/views/auth/register_screen.dart';
-import 'package:mobile_project/views/donor/donor_home.dart';
-import 'package:mobile_project/views/map/resource_map.dart';
-import 'package:mobile_project/views/recipient/recipient_home.dart';
-import 'package:mobile_project/views/splash_screen.dart';
-import 'package:mobile_project/core/routes.dart';
-import 'package:mobile_project/core/theme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+import 'package:mobile_project/core/theme/theme.dart';
+import 'package:mobile_project/core/utils/routes.dart';
+import 'package:mobile_project/core/widgets/donation_all_page.dart';
+import 'package:mobile_project/core/widgets/recipient_all_pages.dart';
+import 'package:mobile_project/features/auth/login_screen.dart';
+import 'package:mobile_project/features/auth/register_screen.dart';
+import 'package:mobile_project/features/splash/splash_screen.dart';
+
+void main() async {
+  await Supabase.initialize(
+    url: 'https://wmcwbyprpsmfhbcbryje.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtY3dieXBycHNtZmhiY2JyeWplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjQyMDMsImV4cCI6MjA2MTk0MDIwM30.hg2juPoCQmaaQpLI_RI3OZo0n6v1eJxLsy9OQhkcZyY',
+  );
   runApp(const UnitedHopeApp());
 }
 
@@ -27,9 +33,8 @@ class UnitedHopeApp extends StatelessWidget {
         AppRoutes.splash: (context) => const SplashScreen(),
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.register: (context) => const RegisterScreen(),
-        AppRoutes.donorHome: (context) => const DonorHomeScreen(),
-        AppRoutes.recipientHome: (context) => const RecipientHomeScreen(),
-        AppRoutes.resourceMap: (context) => const ResourceMapScreen(),
+        AppRoutes.donorHome: (context) => const DonationAllPage(),
+        AppRoutes.recipientHome: (context) => const RecipientAllPages(),
       },
       onUnknownRoute:
           (settings) => MaterialPageRoute(
