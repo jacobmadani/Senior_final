@@ -5,7 +5,8 @@ class ShowDonorRequestDetails extends StatefulWidget {
   final RequestModel request;
 
   @override
-  State<ShowDonorRequestDetails> createState() => _ShowDonorRequestDetailsState();
+  State<ShowDonorRequestDetails> createState() =>
+      _ShowDonorRequestDetailsState();
 }
 
 class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
@@ -76,7 +77,7 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
                       requestTitle: '',
                       amount: 0,
                       items: ['Auto-added'],
-                      date: DateTime.now().toIso8601String(),
+                      date: DateTime.now(),
                       status: 'Pending',
                       message: null,
                     );

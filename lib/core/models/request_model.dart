@@ -12,6 +12,9 @@ class RequestModel extends Request {
     required super.location,
     required super.date,
     required super.status,
+    required super.donatedAmount,
+    required super.goalAmount,
+    required super.confirmationCode,
   });
 
   factory RequestModel.fromMap(Map<String, dynamic> map) {
@@ -26,6 +29,9 @@ class RequestModel extends Request {
       location: map['location'] as String,
       date: DateTime.parse(map['created_at'] as String),
       status: map['status'] as String,
+      donatedAmount: map['donatedAmount'] as double,
+      goalAmount: map['goalAmount'] as double,
+      confirmationCode: map['confirmationcode'] as String,
     );
   }
   Map<String, dynamic> toMap() {
@@ -39,6 +45,9 @@ class RequestModel extends Request {
       'location': location,
       'created_at': date.toIso8601String(),
       'status': status,
+      'donatedAmount': donatedAmount,
+      'goalAmount': goalAmount,
+      'confirmationcode': confirmationCode,
     };
   }
 }

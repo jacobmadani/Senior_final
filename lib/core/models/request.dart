@@ -8,6 +8,9 @@ class Request {
   final String location;
   final DateTime date;
   String status;
+  final double donatedAmount;
+  final double goalAmount;
+  final String confirmationCode;
 
   Request({
     required this.id,
@@ -19,5 +22,8 @@ class Request {
     required this.location,
     required this.date,
     required this.status,
+    required this.donatedAmount,
+    required this.goalAmount,
+    required this.confirmationCode,
   });
 }

@@ -48,4 +48,34 @@ class RequestService {
       });
     }
   }
+
+  Future<List<RequestModel>> getRequestsByRecipient(String recipientId) async {
+    final response = await Supabase.instance.client
+        .from('request')
+        .select()
+        .eq('recipient_id', recipientId);
+
+    if (response == null || response is! List) return [];
+
+    return response.map((map) => RequestModel.fromMap(map)).toList();
+  }
+
+  Future<RequestModel> getRequestById(String id) async {
+  final response = await Supabase.instance.client
+      .from('request')
+      .select()
+      .eq('id', id)
+      .maybeSingle();
+
+  if (response == null) throw Exception('Request not found');
+  return RequestModel.fromMap(response);
+}
+
+Future<void> updateDonatedAmount(String requestId, double amount, String status) async {
+  await Supabase.instance.client.from('request').update({
+    'donatedAmount': amount,
+    'status': status,
+  }).eq('id', requestId);
+}
+
 }

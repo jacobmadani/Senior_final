@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_project/core/models/donation_model.dart';
 import 'package:mobile_project/core/utils/constants.dart';
 import 'package:mobile_project/core/models/donation.dart';
 
 class DonationCard extends StatelessWidget {
-  final Donation donation;
+  final DonationModel donation;
   final VoidCallback onTap;
 
   const DonationCard({super.key, required this.donation, required this.onTap});
@@ -43,7 +44,7 @@ class DonationCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Text(donation.date, style: Theme.of(context).textTheme.bodySmall),
+              Text(donation.date as String, style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
         ),

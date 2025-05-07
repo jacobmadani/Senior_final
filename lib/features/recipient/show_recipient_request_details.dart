@@ -77,7 +77,7 @@ class _ShowRecipientRequestDetailsState
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Donation added successfully!'),
+                        content: Text('Request Deleted successfully!'),
                       ),
                     );
                   },

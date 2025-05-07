@@ -3,9 +3,11 @@ class Donation {
   final String requestTitle;
   final double amount;
   final List<String> items;
-  final String date;
-  String status;
+  final DateTime date;
+  final String status;
   final String? message;
+  final String? donorId;
+  final String? requestId;
 
   Donation({
     required this.id,
@@ -15,19 +17,7 @@ class Donation {
     required this.date,
     required this.status,
     this.message,
+    this.donorId,
+    this.requestId,
   });
-
-  static List<Donation> mockDonations() {
-    return [
-      Donation(
-        id: '1',
-        requestTitle: 'Medical Supplies for Hospital',
-        amount: 250.0,
-        items: ['Bandages', 'Antiseptics'],
-        date: '2023-05-15',
-        status: 'Delivered',
-        message: 'Hope this helps!',
-      ),
-    ];
-  }
 }
