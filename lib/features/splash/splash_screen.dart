@@ -29,7 +29,11 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.handshake, size: 80, color: Colors.white),
+            Image.asset(
+              'assets/senior_white_logo.PNG',
+              width: 200,
+              height: 200,
+            ),
             const SizedBox(height: 20),
             Text(
               'United Hope',

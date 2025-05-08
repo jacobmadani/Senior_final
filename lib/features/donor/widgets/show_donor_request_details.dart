@@ -10,7 +10,7 @@ class ShowDonorRequestDetails extends StatefulWidget {
 }
 
 class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
-  UserProfileModel? recipientProfile;
+  Recipient? recipientProfile;
 
   @override
   void initState() {
@@ -23,18 +23,18 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
     final response =
         await Supabase.instance.client
             .from('recipient')
-            .select()
+            .select('id,name, number')
             .eq('id', widget.request.recipientId)
             .maybeSingle();
 
     print('Recipient response: $response');
 
-    if (response != null) {
+    if (mounted) {
       setState(() {
-        recipientProfile = UserProfileModel.fromJson(response);
+        if (response != null) {
+          recipientProfile = Recipient.fromJson(response);
+        }
       });
-    } else {
-      print('Recipient not found for id ${widget.request.recipientId}');
     }
   }
 

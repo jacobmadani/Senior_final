@@ -45,9 +45,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         case 'recipient':
           Navigator.pushReplacementNamed(context, AppRoutes.recipientHome);
           break;
-        case 'intermediary':
-          Navigator.pushReplacementNamed(context, AppRoutes.intermediaryHome);
-          break;
       }
     } catch (e) {
       // Show error to user using snackbar or dialog
@@ -137,10 +134,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 segments: const [
                   ButtonSegment(value: 'donor', label: Text('Donor')),
                   ButtonSegment(value: 'recipient', label: Text('Recipient')),
-                  ButtonSegment(
-                    value: 'intermediary',
-                    label: Text('Organization'),
-                  ),
                 ],
                 selected: {_userType},
                 onSelectionChanged: (Set<String> newSelection) {

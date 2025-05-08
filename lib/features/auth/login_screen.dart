@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 40),
-            Image.asset('assets/senior_white_logo.jpg', height: 120),
+            Image.asset('assets/senior_logoo.PNG', height: 120),
             const SizedBox(height: 40),
             Text(
               'Welcome to United Hope',

@@ -27,30 +27,39 @@ class RequestService {
 
   Future<void> ensureRecipientExists() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    final name =
-        Supabase.instance.client.auth.currentUser?.userMetadata!['name'] ?? '';
-    final number =
-        Supabase.instance.client.auth.currentUser?.userMetadata!['number'] ?? '';
-
     if (userId == null) {
       throw Exception('User is not authenticated');
     }
 
-    // Check if the user already exists in the recipient table
+    // fetch from profiles table instead of userMetadata
+    final profile =
+        await Supabase.instance.client
+            .from('profiles')
+            .select('name, number') // select both
+            .eq('id', userId)
+            .maybeSingle();
+
+    if (profile == null) {
+      throw Exception('User profile not found.');
+    }
+
+    final name = profile['name'] ?? '';
+    final number = profile['number'] ?? '';
+
+    // check if recipient exists
     final response =
         await Supabase.instance.client
             .from('recipient')
             .select('id')
             .eq('id', userId)
-            .maybeSingle(); // Use maybeSingle() to handle 0 rows gracefully
+            .maybeSingle();
 
     if (response == null) {
-      // User does not exist, insert them into the recipient table
+      // insert recipient using profile data
       await Supabase.instance.client.from('recipient').insert({
         'id': userId,
         'name': name,
         'number': number,
-        // Add other fields if necessary, e.g., name, email, etc.
       });
     }
   }
