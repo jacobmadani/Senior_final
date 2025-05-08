@@ -27,6 +27,10 @@ class RequestService {
 
   Future<void> ensureRecipientExists() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
+    final name =
+        Supabase.instance.client.auth.currentUser?.userMetadata!['name'] ?? '';
+    final number =
+        Supabase.instance.client.auth.currentUser?.userMetadata!['number'] ?? '';
 
     if (userId == null) {
       throw Exception('User is not authenticated');
@@ -44,6 +48,8 @@ class RequestService {
       // User does not exist, insert them into the recipient table
       await Supabase.instance.client.from('recipient').insert({
         'id': userId,
+        'name': name,
+        'number': number,
         // Add other fields if necessary, e.g., name, email, etc.
       });
     }
@@ -55,27 +61,29 @@ class RequestService {
         .select()
         .eq('recipient_id', recipientId);
 
-    if (response is! List) return [];
-
     return response.map((map) => RequestModel.fromMap(map)).toList();
   }
 
   Future<RequestModel> getRequestById(String id) async {
-  final response = await Supabase.instance.client
-      .from('request')
-      .select()
-      .eq('id', id)
-      .maybeSingle();
+    final response =
+        await Supabase.instance.client
+            .from('request')
+            .select()
+            .eq('id', id)
+            .maybeSingle();
 
-  if (response == null) throw Exception('Request not found');
-  return RequestModel.fromMap(response);
-}
+    if (response == null) throw Exception('Request not found');
+    return RequestModel.fromMap(response);
+  }
 
-Future<void> updateDonatedAmount(String requestId, double amount, String status) async {
-  await Supabase.instance.client.from('request').update({
-    'donatedAmount': amount,
-    'status': status,
-  }).eq('id', requestId);
-}
-
+  Future<void> updateDonatedAmount(
+    String requestId,
+    double amount,
+    String status,
+  ) async {
+    await Supabase.instance.client
+        .from('request')
+        .update({'donatedAmount': amount, 'status': status})
+        .eq('id', requestId);
+  }
 }

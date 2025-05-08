@@ -1,4 +1,3 @@
-import 'package:mobile_project/core/models/request_model.dart';
 import 'package:mobile_project/core/models/saved_request.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';

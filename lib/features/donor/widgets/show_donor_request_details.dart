@@ -10,15 +10,36 @@ class ShowDonorRequestDetails extends StatefulWidget {
 }
 
 class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
+  UserProfileModel? recipientProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecipient();
+  }
+
+  Future<void> _fetchRecipient() async {
+    print('Fetching recipient for id: ${widget.request.recipientId}');
+    final response =
+        await Supabase.instance.client
+            .from('recipient')
+            .select()
+            .eq('id', widget.request.recipientId)
+            .maybeSingle();
+
+    print('Recipient response: $response');
+
+    if (response != null) {
+      setState(() {
+        recipientProfile = UserProfileModel.fromJson(response);
+      });
+    } else {
+      print('Recipient not found for id ${widget.request.recipientId}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final AuthServices authServices = AuthServices(Supabase.instance.client);
-    UserProfile currentUser = UserProfile(
-      name: authServices.currentUserSession?.user.userMetadata!['name'] ?? '',
-      email: authServices.currentUserSession?.user.email ?? '',
-      phone:
-          authServices.currentUserSession?.user.userMetadata!['number'] ?? '',
-    );
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -34,11 +55,11 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
 
           // 🔽 Added fields here before category
           Text(
-            'Recipient Name: ${currentUser.name}',
+            'Recipient Name: ${recipientProfile?.name ?? 'Loading...'}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
-            'Recipient Phone: ${currentUser.phone}',
+            'Recipient Phone: ${recipientProfile?.phone ?? 'Loading...'}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(

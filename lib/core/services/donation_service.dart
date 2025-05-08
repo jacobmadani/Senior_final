@@ -11,8 +11,6 @@ class DonationService {
   Future<List<DonationModel>> getDonationsByDonor(String donorId) async {
     final response = await database.select().eq('donor_id', donorId);
 
-    if (response is! List) return [];
-
     return response.map((map) => DonationModel.fromMap(map)).toList();
   }
 

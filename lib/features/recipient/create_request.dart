@@ -409,7 +409,10 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
   String _generateConfirmationCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final rand = Random();
-    return List.generate(6, (index) => chars[rand.nextInt(chars.length)]).join();
+    return List.generate(
+      6,
+      (index) => chars[rand.nextInt(chars.length)],
+    ).join();
   }
 
   @override
@@ -448,7 +451,10 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
                   DropdownMenuItem(value: 'Medical', child: Text('Medical')),
                   DropdownMenuItem(value: 'Shelter', child: Text('Shelter')),
                   DropdownMenuItem(value: 'Clothing', child: Text('Clothing')),
-                  DropdownMenuItem(value: 'Education', child: Text('Education')),
+                  DropdownMenuItem(
+                    value: 'Education',
+                    child: Text('Education'),
+                  ),
                 ],
                 onChanged: (value) => setState(() => _category = value!),
               ),
@@ -523,52 +529,71 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
 
               // --- Submit Button
               ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() => _isLoading = true);
-                          try {
-                            await requestservice.ensureRecipientExists();
+                onPressed:
+                    _isLoading
+                        ? null
+                        : () async {
+                          if (_formKey.currentState!.validate()) {
+                            setState(() => _isLoading = true);
+                            try {
+                              await requestservice.ensureRecipientExists();
 
-                            final goal = double.tryParse(_goalAmountController.text) ?? 0.0;
+                              final goal =
+                                  double.tryParse(_goalAmountController.text) ??
+                                  0.0;
 
-                            final confirmationCode = _generateConfirmationCode();
+                              final confirmationCode =
+                                  _generateConfirmationCode();
 
-                            final newrequest = RequestModel(
-                              id: Uuid().v1(),
-                              recipientId: Supabase.instance.client.auth.currentUser?.id ?? '',
-                              title: _titleController.text,
-                              description: _descriptionController.text,
-                              category: _category,
-                              urgency: _urgency,
-                              location: _locationController.text,
-                              date: DateTime.now(),
-                              status: 'Pending',
-                              donatedAmount: 0,
-                              goalAmount: goal,
-                              confirmationCode: confirmationCode, // ✅ ADD THIS
-                            );
+                              final newrequest = RequestModel(
+                                id: Uuid().v1(),
+                                recipientId:
+                                    Supabase
+                                        .instance
+                                        .client
+                                        .auth
+                                        .currentUser
+                                        ?.id ??
+                                    '',
+                                title: _titleController.text,
+                                description: _descriptionController.text,
+                                category: _category,
+                                urgency: _urgency,
+                                location: _locationController.text,
+                                date: DateTime.now(),
+                                status: 'Pending',
+                                donatedAmount: 0,
+                                goalAmount: goal,
+                                confirmationCode: confirmationCode,
+                              );
 
-                            await requestservice.createRequest(newrequest);
+                              await requestservice.createRequest(newrequest);
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Request submitted successfully!')),
-                            );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Request submitted successfully!',
+                                  ),
+                                ),
+                              );
 
-                            Navigator.pop(context, newrequest);
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to submit request: $e')),
-                            );
-                          } finally {
-                            setState(() => _isLoading = false);
+                              Navigator.pop(context, newrequest);
+                            } catch (e) {
+                              print(e.toString());
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to submit request: $e'),
+                                ),
+                              );
+                            } finally {
+                              setState(() => _isLoading = false);
+                            }
                           }
-                        }
-                      },
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Submit Request'),
+                        },
+                child:
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Submit Request'),
               ),
             ],
           ),
