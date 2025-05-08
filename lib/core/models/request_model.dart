@@ -29,8 +29,8 @@ class RequestModel extends Request {
       location: map['location'] as String,
       date: DateTime.parse(map['created_at'] as String),
       status: map['status'] as String,
-      donatedAmount: map['donatedAmount'] as double,
-      goalAmount: map['goalAmount'] as double,
+      donatedAmount: (map['donatedAmount'] as num).toDouble(),
+      goalAmount: (map['goalAmount'] as num).toDouble(),
       confirmationCode: map['confirmationcode'] as String,
     );
   }

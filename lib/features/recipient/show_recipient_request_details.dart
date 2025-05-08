@@ -13,6 +13,13 @@ class _ShowRecipientRequestDetailsState
     extends State<ShowRecipeintRequestDetails> {
   @override
   Widget build(BuildContext context) {
+    final AuthServices authServices = AuthServices(Supabase.instance.client);
+    UserProfile currentUser = UserProfile(
+      name: authServices.currentUserSession?.user.userMetadata!['name'] ?? '',
+      email: authServices.currentUserSession?.user.email ?? '',
+      phone:
+          authServices.currentUserSession?.user.userMetadata!['number'] ?? '',
+    );
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -28,15 +35,15 @@ class _ShowRecipientRequestDetailsState
 
           // 🔽 Added fields here before category
           Text(
-            'Recipient Name: John Doe',
+            'Recipient Name: ${currentUser.name}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
-            'Recipient Phone: +961-70123456',
+            'Recipient Phone: ${currentUser.phone}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
-            'Area: Beirut, Lebanon',
+            'Area: ${widget.request.location}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
 

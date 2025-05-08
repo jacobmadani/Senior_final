@@ -25,7 +25,7 @@ class ProfileBody extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           Text(
-            '',
+            currentUser.name,
             // _currentUser.name,
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,

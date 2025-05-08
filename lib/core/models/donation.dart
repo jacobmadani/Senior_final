@@ -8,6 +8,7 @@ class Donation {
   final String? message;
   final String? donorId;
   final String? requestId;
+  final String? confirmationCode;
 
   Donation({
     required this.id,
@@ -19,5 +20,6 @@ class Donation {
     this.message,
     this.donorId,
     this.requestId,
+    this.confirmationCode,
   });
 }

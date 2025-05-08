@@ -136,6 +136,7 @@ import 'package:mobile_project/core/models/donation.dart';
 import 'package:mobile_project/core/services/request_service.dart';
 import 'package:mobile_project/core/utils/constants.dart';
 
+// ignore: must_be_immutable
 class ShowDonationDetails extends StatefulWidget {
   ShowDonationDetails({
     super.key,
@@ -161,52 +162,56 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
   double progress = 0;
   bool isLoading = true;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   localStatus = widget.donation.status;
-  //   _fetchRequestProgress();
-  // }
+  @override
+  void initState() {
+    super.initState();
+    localStatus = widget.donation.status;
+    _fetchRequestProgress();
+  }
 
-  // Future<void> _fetchRequestProgress() async {
-  //   final request = await RequestService().getRequestById(widget.donation.requestId!);
-  //   setState(() {
-  //     donated = request.donatedAmount;
-  //     goal = request.goalAmount > 0 ? request.goalAmount : 1;
-  //     progress = donated / goal;
-  //     isLoading = false;
-  //   });
-  // }
+  Future<void> _fetchRequestProgress() async {
+    final request = await RequestService().getRequestById(
+      widget.donation.requestId!,
+    );
+    setState(() {
+      donated = request.donatedAmount;
+      goal = request.goalAmount > 0 ? request.goalAmount : 1;
+      progress = donated / goal;
+      isLoading = false;
+    });
+  }
 
-  // Future<void> _confirmDonation() async {
-  //   if (widget.enteredCode != widget.donation.confirmationCode) {
-  //     setState(() => widget.codeErrorMessage = 'Incorrect code');
-  //     return;
-  //   }
+  Future<void> _confirmDonation() async {
+    if (widget.enteredCode != widget.donation.confirmationCode) {
+      setState(() => widget.codeErrorMessage = 'Incorrect code');
+      return;
+    }
 
-  //   final request = await RequestService().getRequestById(widget.donation.requestId!);
+    final request = await RequestService().getRequestById(
+      widget.donation.requestId!,
+    );
 
-  //   final updatedAmount = request.donatedAmount + widget.donation.amount;
-  //   final fulfilled = updatedAmount >= request.goalAmount;
+    final updatedAmount = request.donatedAmount + widget.donation.amount;
+    final fulfilled = updatedAmount >= request.goalAmount;
 
-  //   await RequestService().updateDonatedAmount(
-  //     request.id,
-  //     updatedAmount,
-  //     fulfilled ? 'Fulfilled' : 'Pending',
-  //   );
+    await RequestService().updateDonatedAmount(
+      request.id,
+      updatedAmount,
+      fulfilled ? 'Fulfilled' : 'Pending',
+    );
 
-  //   setState(() {
-  //     localStatus = 'Delivered';
-  //     progress = updatedAmount / request.goalAmount;
-  //     widget.codeErrorMessage = null;
-  //   });
+    setState(() {
+      localStatus = 'Delivered';
+      progress = updatedAmount / request.goalAmount;
+      widget.codeErrorMessage = null;
+    });
 
-  //   Navigator.pop(context);
+    Navigator.pop(context);
 
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     const SnackBar(content: Text('Donation was confirmed!')),
-  //   );
-  // }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Donation was confirmed!')));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -277,12 +282,12 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
               ),
               const SizedBox(width: 16),
               if (localStatus == 'Pending' && !isGoalReached)
-                // Expanded(
-                //   child: ElevatedButton(
-                //     onPressed: _confirmDonation,
-                //     child: const Text('Confirm'),
-                //   ),
-                // ),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _confirmDonation,
+                    child: const Text('Confirm'),
+                  ),
+                ),
             ],
           ),
         ],

@@ -11,19 +11,21 @@ class DonationModel extends Donation {
     super.message,
     super.donorId,
     super.requestId,
+    super.confirmationCode,
   });
 
   factory DonationModel.fromMap(Map<String, dynamic> map) {
     return DonationModel(
       id: map['id'] as String,
       requestTitle: map['requestTitle'] as String,
-      amount: (map['amount'] as num).toDouble(),
+      amount: (map['amountAdded'] as num).toDouble(),
       items: List<String>.from(map['items'] ?? []),
       date: DateTime.parse(map['date'] as String),
       status: map['status'] as String,
       message: map['message'],
-      donorId: map['donorId'],
-      requestId: map['requestId'],
+      donorId: map['donor_id'],
+      requestId: map['request_id'],
+      confirmationCode: map['confirmationCode'],
     );
   }
 
@@ -38,6 +40,7 @@ class DonationModel extends Donation {
       'message': message,
       'donorId': donorId,
       'requestId': requestId,
+      'confirmationCode': confirmationCode,
     };
   }
 }

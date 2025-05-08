@@ -55,7 +55,7 @@ class RequestService {
         .select()
         .eq('recipient_id', recipientId);
 
-    if (response == null || response is! List) return [];
+    if (response is! List) return [];
 
     return response.map((map) => RequestModel.fromMap(map)).toList();
   }

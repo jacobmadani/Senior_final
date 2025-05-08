@@ -66,6 +66,11 @@ class _DonorPageBodyState extends State<DonorPageBody> {
                     !snapshot.hasData)) {
               return const Center(child: CircularProgressIndicator());
             }
+
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No requests found.'));
+            }
+
             final requests = snapshot.data!;
             return ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -78,7 +83,9 @@ class _DonorPageBodyState extends State<DonorPageBody> {
                       context: context,
                       isScrollControlled: true,
                       builder: (context) {
-                        return ShowDonorRequestDetails(request: requests[index]);
+                        return ShowDonorRequestDetails(
+                          request: requests[index],
+                        );
                       },
                     );
                   },

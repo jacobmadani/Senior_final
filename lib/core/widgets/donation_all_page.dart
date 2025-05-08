@@ -17,7 +17,7 @@ class DonationAllPage extends StatelessWidget {
       ),
       BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
     ];
-    List<Widget> pages = [DonorPage(), DonationPage(), Profile()];
+    List<Widget> pages = [DonorPage(), SavedDonationPage(), Profile()];
     return CustomeBottomNavigationBar(
       bottomNavItems: bottomNavItems,
       pages: pages,

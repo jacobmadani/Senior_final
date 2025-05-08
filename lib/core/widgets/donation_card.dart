@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/models/donation_model.dart';
 import 'package:mobile_project/core/utils/constants.dart';
-import 'package:mobile_project/core/models/donation.dart';
 
 class DonationCard extends StatelessWidget {
   final DonationModel donation;

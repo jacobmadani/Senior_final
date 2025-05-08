@@ -12,6 +12,13 @@ class ShowDonorRequestDetails extends StatefulWidget {
 class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
   @override
   Widget build(BuildContext context) {
+    final AuthServices authServices = AuthServices(Supabase.instance.client);
+    UserProfile currentUser = UserProfile(
+      name: authServices.currentUserSession?.user.userMetadata!['name'] ?? '',
+      email: authServices.currentUserSession?.user.email ?? '',
+      phone:
+          authServices.currentUserSession?.user.userMetadata!['number'] ?? '',
+    );
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -27,15 +34,15 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
 
           // 🔽 Added fields here before category
           Text(
-            'Recipient Name: John Doe',
+            'Recipient Name: ${currentUser.name}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
-            'Recipient Phone: +961-70123456',
+            'Recipient Phone: ${currentUser.phone}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(
-            'Area: Beirut, Lebanon',
+            'Area: ${widget.request.location}',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
 
@@ -71,29 +78,41 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    final donation = Donation(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      requestTitle: '',
-                      amount: 0,
-                      items: ['Auto-added'],
-                      date: DateTime.now(),
-                      status: 'Pending',
-                      message: null,
-                    );
+                  onPressed: () async {
+                    final userId =
+                        Supabase.instance.client.auth.currentUser?.id;
+                    if (userId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('You must be logged in to save.'),
+                        ),
+                      );
+                      return;
+                    }
 
-                    setState(() {
-                      widget.request.status = 'Fulfilled';
-                      // _donations.add(donation);
-                    });
+                    final savedDonationService = SavedDonationService();
 
-                    Navigator.pop(context);
+                    try {
+                      await savedDonationService.ensureDonorExists();
+                      await savedDonationService.saveRequest(
+                        userId,
+                        widget.request.id,
+                      );
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Donation added successfully!'),
-                      ),
-                    );
+                      if (!mounted) return;
+                      Navigator.pop(context);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Request saved to your donations!'),
+                        ),
+                      );
+                    } catch (e) {
+                      print('Error saving request: ${e.toString()}');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to save request: $e')),
+                      );
+                    }
                   },
 
                   child: const Text('Add to Donations'),
