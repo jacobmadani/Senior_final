@@ -43,13 +43,10 @@ class AuthServices {
       // Navigate based on usertype
       switch (userType) {
         case 'donor':
-          Navigator.pushReplacementNamed(context, AppRoutes.donorHome);
+          Navigator.pushReplacementNamed(context, AppRoutes.admin);
           break;
         case 'recipient':
           Navigator.pushReplacementNamed(context, AppRoutes.recipientHome);
-          break;
-        case 'intermediary':
-          Navigator.pushReplacementNamed(context, AppRoutes.intermediaryHome);
           break;
         default:
           throw 'Unknown user type!';

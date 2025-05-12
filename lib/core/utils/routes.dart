@@ -8,7 +8,7 @@ class AppRoutes {
   static const String register = '/register';
   static const String donorHome = '/donor-home';
   static const String recipientHome = '/recipient-home';
-  static const String intermediaryHome = '/intermediary-home';
+  static const String admin = '/admin';
   static const String resourceMap = '/resource-map';
 }
 

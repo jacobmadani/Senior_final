@@ -87,12 +87,23 @@ class RequestService {
 
   Future<void> updateDonatedAmount(
     String requestId,
-    double amount,
-    String status,
+    double newAmount,
+    String newStatus,
+    String enteredCode,
+    bool fulfilled,
   ) async {
-    await Supabase.instance.client
-        .from('request')
-        .update({'donatedAmount': amount, 'status': status})
-        .eq('id', requestId);
+    final response = await database
+        .update({
+          'donatedAmount': newAmount,
+          'status': fulfilled ? 'Fulfilled' : 'Pending',
+        })
+        .eq('id', requestId)
+        .eq('confirmationcode', enteredCode);
+
+    if (response != null) {
+      throw Exception(
+        'Failed to update donated amount: ${response.toString()}',
+      );
+    }
   }
 }

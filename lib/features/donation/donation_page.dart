@@ -5,6 +5,7 @@ import 'package:mobile_project/core/models/saved_request.dart';
 import 'package:mobile_project/core/services/request_service.dart';
 import 'package:mobile_project/core/services/save_request_service.dart';
 import 'package:mobile_project/core/widgets/request_card.dart';
+import 'package:mobile_project/features/donation/widget/save_donation_sheet.dart';
 import 'package:mobile_project/features/donation/widget/show_donation_details.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -56,38 +57,84 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
                 future: RequestService().getRequestById(saved.requestId),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
-                    return const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: LinearProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   final request = snapshot.data!;
                   return RequestCard(
                     request: request,
-                    onTap: () {
-                      final fakeDonation = Donation(
-                        id: saved.id,
-                        donorId: saved.donorId,
-                        requestId: request.id,
-                        requestTitle: request.title,
-                        amount: request.goalAmount,
-                        date: request.date,
-                        status: request.status,
-                        confirmationCode: request.confirmationCode,
-                      );
+                    onTap: () async {
+                      final modalContext =
+                          context; // ✅ capture context BEFORE await
 
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        builder:
-                            (_) => ShowDonationDetails(
-                              donation: fakeDonation,
-                              enteredCode: '',
-                              codeErrorMessage: null,
-                              donationStatus: request.status,
-                            ),
-                      );
+                      final donationRow =
+                          await Supabase.instance.client
+                              .from('donation')
+                              .select()
+                              .eq('donor_id', saved.donorId)
+                              .eq('request_id', saved.requestId)
+                              .maybeSingle();
+
+                      if (!mounted) return; // ✅ check mounted after async
+
+                      if (donationRow != null) {
+                        // donor already donated → show SavedDonationSheet
+                        final donatedAmount =
+                            donationRow['amountdonated'] as double;
+
+                        // Create Donation object to pass to SavedDonationSheet
+                        final donation = Donation(
+                          id: donationRow['id'], // if stored in db, otherwise saved.id
+                          donorId: saved.donorId,
+                          requestId: saved.requestId,
+                          requestTitle: request.title,
+                          amount: donatedAmount,
+                          date: request.date,
+                          status: request.status,
+                          confirmationCode: request.confirmationCode,
+                        );
+
+                        showModalBottomSheet(
+                          context: modalContext, // ✅ use captured context
+                          isScrollControlled: true,
+                          builder:
+                              (_) => SavedDonationSheet(
+                                donatedAmount: donation,
+                                onRemove: () async {
+                                  await _savedRequestService.removeSavedRequest(
+                                    saved.donorId,
+                                    saved.requestId,
+                                  );
+                                  if (!mounted) return;
+                                  setState(() {}); // refresh after removal
+                                },
+                              ),
+                        );
+                      } else {
+                        // donor hasn’t donated yet → show donation details
+                        final donation = Donation(
+                          id: saved.id,
+                          donorId: saved.donorId,
+                          requestId: request.id,
+                          requestTitle: request.title,
+                          amount: 0.0,
+                          date: request.date,
+                          status: request.status,
+                          confirmationCode: request.confirmationCode,
+                        );
+
+                        showModalBottomSheet(
+                          context: modalContext, // ✅ use captured context
+                          isScrollControlled: true,
+                          builder:
+                              (_) => ShowDonationDetails(
+                                donation: donation,
+                                enteredCode: '',
+                                codeErrorMessage: null,
+                                donationStatus: request.status,
+                              ),
+                        );
+                      }
                     },
                   );
                 },

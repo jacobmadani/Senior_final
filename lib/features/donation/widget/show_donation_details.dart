@@ -1,503 +1,8 @@
-// import 'package:flutter/material.dart';
-// import 'package:mobile_project/core/models/donation.dart';
-// import 'package:mobile_project/core/utils/constants.dart';
-
-// // ignore: must_be_immutable
-// class ShowDonationDetails extends StatefulWidget {
-//   ShowDonationDetails({
-//     super.key,
-//     required this.donation,
-//     this.enteredCode,
-//     this.codeErrorMessage,
-//     this.donationStatus,
-//   });
-
-//   final Donation donation;
-//   String? enteredCode;
-//   String? codeErrorMessage;
-//   final String? donationStatus;
-
-//   @override
-//   State<ShowDonationDetails> createState() => _ShowDonationDetailsState();
-// }
-
-// class _ShowDonationDetailsState extends State<ShowDonationDetails> {
-//   String localStatus = '';
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     localStatus = widget.donation.status;
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: const EdgeInsets.all(16),
-//       child: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         crossAxisAlignment: CrossAxisAlignment.stretch,
-//         children: [
-//           Text(
-//             'Donation to: ${widget.donation.requestTitle}',
-//             style: Theme.of(context).textTheme.titleLarge,
-//           ),
-//           const SizedBox(height: 16),
-
-//           _buildDonationDetailItem('Amount', '\$${widget.donation.amount}'),
-//           _buildDonationDetailItem('Items', widget.donation.items.join(', ')),
-//           _buildDonationDetailItem(
-//             'Date',
-//             widget.donation.date.toLocal().toString().split(' ')[0],
-//           ),
-//           _buildDonationDetailItem('Status', localStatus),
-
-//           const SizedBox(height: 16),
-//           Text(
-//             'Message:',
-//             style: TextStyle(
-//               fontWeight: FontWeight.bold,
-//               color: AppColors.textDark,
-//             ),
-//           ),
-//           Text(widget.donation.message ?? 'No message'),
-
-//           if (localStatus == 'Pending') ...[
-//             const SizedBox(height: 16),
-//             TextField(
-//               decoration: InputDecoration(
-//                 labelText: 'Enter the code',
-//                 border: OutlineInputBorder(),
-//                 errorText: widget.codeErrorMessage,
-//               ),
-//               onChanged: (value) {
-//                 setState(() {
-//                   widget.enteredCode = value;
-//                   widget.codeErrorMessage = null;
-//                 });
-//               },
-//             ),
-//           ],
-
-//           const SizedBox(height: 24),
-//           Row(
-//             children: [
-//               Expanded(
-//                 child: ElevatedButton(
-//                   onPressed: () => Navigator.pop(context),
-//                   child: const Text('Close'),
-//                 ),
-//               ),
-//               const SizedBox(width: 16),
-//               if (localStatus == 'Pending')
-//                 Expanded(
-//                   child: ElevatedButton(
-//                     onPressed: () {
-//                       setState(() {
-//                         if (widget.enteredCode == '1234') {
-//                           localStatus = 'Delivered';
-//                           widget.codeErrorMessage = null;
-//                           Navigator.pop(context);
-//                           ScaffoldMessenger.of(context).showSnackBar(
-//                             const SnackBar(
-//                               content: Text('Donation was confirmed!'),
-//                             ),
-//                           );
-//                         } else {
-//                           widget.codeErrorMessage = 'Incorrect code';
-//                         }
-//                       });
-//                     },
-//                     child: const Text('Confirm'),
-//                   ),
-//                 ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildDonationDetailItem(String title, String value) {
-//     return Padding(
-//       padding: const EdgeInsets.only(bottom: 4),
-//       child: Row(
-//         children: [
-//           Text('$title: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-//           Expanded(child: Text(value)),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/models/donation.dart';
 import 'package:mobile_project/core/services/request_service.dart';
-
-// ignore: must_be_immutable
-// class ShowDonationDetails extends StatefulWidget {
-//   ShowDonationDetails({
-//     super.key,
-//     required this.donation,
-//     this.enteredCode,
-//     this.codeErrorMessage,
-//     this.donationStatus,
-//   });
-
-//   final Donation donation;
-//   String? enteredCode;
-//   String? codeErrorMessage;
-//   final String? donationStatus;
-
-//   @override
-//   State<ShowDonationDetails> createState() => _ShowDonationDetailsState();
-// }
-
-// class _ShowDonationDetailsState extends State<ShowDonationDetails> {
-//   String localStatus = '';
-//   double donated = 0;
-//   double goal = 1; // prevent division by 0
-//   double progress = 0;
-//   bool isLoading = true;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     localStatus = widget.donation.status;
-//     _fetchRequestProgress();
-//   }
-
-//   Future<void> _fetchRequestProgress() async {
-//     final request = await RequestService().getRequestById(
-//       widget.donation.requestId!,
-//     );
-//     setState(() {
-//       donated = request.donatedAmount;
-//       goal = request.goalAmount > 0 ? request.goalAmount : 1;
-//       progress = donated / goal;
-//       isLoading = false;
-//     });
-//   }
-
-//   Future<void> _confirmDonation() async {
-//     if (widget.enteredCode != widget.donation.confirmationCode) {
-//       setState(() => widget.codeErrorMessage = 'Incorrect code');
-//       return;
-//     }
-
-//     final request = await RequestService().getRequestById(
-//       widget.donation.requestId!,
-//     );
-
-//     final updatedAmount = request.donatedAmount + widget.donation.amount;
-//     final fulfilled = updatedAmount >= request.goalAmount;
-
-//     await RequestService().updateDonatedAmount(
-//       request.id,
-//       updatedAmount,
-//       fulfilled ? 'Fulfilled' : 'Pending',
-//     );
-
-//     setState(() {
-//       localStatus = 'Delivered';
-//       progress = updatedAmount / request.goalAmount;
-//       widget.codeErrorMessage = null;
-//     });
-
-//     Navigator.pop(context);
-
-//     ScaffoldMessenger.of(
-//       context,
-//     ).showSnackBar(const SnackBar(content: Text('Donation was confirmed!')));
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (isLoading) return const Center(child: CircularProgressIndicator());
-
-//     final isGoalReached = progress >= 1.0;
-
-//     return Padding(
-//       padding: const EdgeInsets.all(16),
-//       child: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         crossAxisAlignment: CrossAxisAlignment.stretch,
-//         children: [
-//           Text(
-//             'Donation to: ${widget.donation.requestTitle}',
-//             style: Theme.of(context).textTheme.titleLarge,
-//           ),
-//           const SizedBox(height: 12),
-
-//           LinearProgressIndicator(value: progress),
-//           const SizedBox(height: 4),
-//           Text('${(progress * 100).toStringAsFixed(1)}% funded'),
-
-//           const SizedBox(height: 12),
-//           _buildDonationDetailItem('Amount', '\$${widget.donation.amount}'),
-
-//           _buildDonationDetailItem(
-//             'Date',
-//             widget.donation.date.toLocal().toString().split(' ')[0],
-//           ),
-//           _buildDonationDetailItem('Status', localStatus),
-//           const SizedBox(height: 12),
-
-//           if (localStatus == 'Pending' && !isGoalReached) ...[
-//             const SizedBox(height: 16),
-//             TextField(
-//               decoration: InputDecoration(
-//                 labelText: 'Enter the code',
-//                 border: OutlineInputBorder(),
-//                 errorText: widget.codeErrorMessage,
-//               ),
-//               onChanged: (value) {
-//                 setState(() {
-//                   widget.enteredCode = value;
-//                   widget.codeErrorMessage = null;
-//                 });
-//               },
-//             ),
-//           ],
-
-//           const SizedBox(height: 24),
-//           Row(
-//             children: [
-//               Expanded(
-//                 child: ElevatedButton(
-//                   onPressed: () => Navigator.pop(context),
-//                   child: const Text('Close'),
-//                 ),
-//               ),
-//               const SizedBox(width: 16),
-//               if (localStatus == 'Pending' && !isGoalReached)
-//                 Expanded(
-//                   child: ElevatedButton(
-//                     onPressed: _confirmDonation,
-//                     child: const Text('Confirm'),
-//                   ),
-//                 ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildDonationDetailItem(String title, String value) {
-//     return Padding(
-//       padding: const EdgeInsets.only(bottom: 4),
-//       child: Row(
-//         children: [
-//           Text('$title: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-//           Expanded(child: Text(value)),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// import 'package:flutter/material.dart';
-// import 'package:mobile_project/core/models/donation.dart';
-// import 'package:mobile_project/core/services/request_service.dart';
-// import 'package:mobile_project/core/utils/constants.dart';
-
-// class ShowDonationDetails extends StatefulWidget {
-//   ShowDonationDetails({
-//     super.key,
-//     required this.donation,
-//     this.enteredCode,
-//     this.codeErrorMessage,
-//     this.donationStatus,
-//   });
-
-//   final Donation donation;
-//   String? enteredCode;
-//   String? codeErrorMessage;
-//   final String? donationStatus;
-
-//   @override
-//   State<ShowDonationDetails> createState() => _ShowDonationDetailsState();
-// }
-
-// class _ShowDonationDetailsState extends State<ShowDonationDetails> {
-//   String localStatus = '';
-//   double donated = 0;
-//   double goal = 1; // prevent division by 0
-//   double progress = 0;
-//   bool isLoading = true;
-
-//   double? enteredAmount; // ✅ new variable for donor input
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     localStatus = widget.donation.status;
-//     _fetchRequestProgress();
-//   }
-
-//   Future<void> _fetchRequestProgress() async {
-//     final request = await RequestService().getRequestById(
-//       widget.donation.requestId!,
-//     );
-//     setState(() {
-//       donated = request.donatedAmount;
-//       goal = request.goalAmount > 0 ? request.goalAmount : 1;
-//       progress = donated / goal;
-//       isLoading = false;
-//     });
-//   }
-
-//   Future<void> _confirmDonation() async {
-//     if (widget.enteredCode != widget.donation.confirmationCode) {
-//       setState(() => widget.codeErrorMessage = 'Incorrect code');
-//       return;
-//     }
-
-//     if (enteredAmount == null || enteredAmount! <= 0) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('Please enter a valid amount')),
-//       );
-//       return;
-//     }
-
-//     final request = await RequestService().getRequestById(
-//       widget.donation.requestId!,
-//     );
-
-//     final updatedAmount = request.donatedAmount + enteredAmount!;
-//     final fulfilled = updatedAmount >= request.goalAmount;
-
-//     await RequestService().updateDonatedAmount(
-//       request.id,
-//       updatedAmount,
-//       fulfilled ? 'Fulfilled' : 'Pending',
-//     );
-
-//     setState(() {
-//       localStatus = 'Delivered';
-//       progress = updatedAmount / request.goalAmount;
-//       widget.codeErrorMessage = null;
-//     });
-
-//     Navigator.pop(context);
-
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(
-//         content: Text(
-//           'Donation of \$${enteredAmount!.toStringAsFixed(2)} confirmed!',
-//         ),
-//       ),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (isLoading) return const Center(child: CircularProgressIndicator());
-
-//     final isGoalReached = progress >= 1.0;
-
-//     return Padding(
-//       padding: const EdgeInsets.all(16),
-//       child: SingleChildScrollView(
-//         child: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           crossAxisAlignment: CrossAxisAlignment.stretch,
-//           children: [
-//             Text(
-//               'Donation to: ${widget.donation.requestTitle}',
-//               style: Theme.of(context).textTheme.titleLarge,
-//             ),
-//             const SizedBox(height: 12),
-
-//             LinearProgressIndicator(value: progress),
-//             const SizedBox(height: 4),
-//             Text('${(progress * 100).toStringAsFixed(1)}% funded'),
-
-//             const SizedBox(height: 12),
-//             _buildDonationDetailItem(
-//               'Current Donated',
-//               '\$${donated.toStringAsFixed(2)}',
-//             ),
-//             _buildDonationDetailItem(
-//               'Goal Amount',
-//               '\$${goal.toStringAsFixed(2)}',
-//             ),
-//             _buildDonationDetailItem('Status', localStatus),
-//             const SizedBox(height: 12),
-
-//             if (localStatus == 'Pending' && !isGoalReached) ...[
-//               const SizedBox(height: 12),
-//               TextField(
-//                 keyboardType: TextInputType.numberWithOptions(decimal: true),
-//                 decoration: const InputDecoration(
-//                   labelText: 'Enter donation amount',
-//                   border: OutlineInputBorder(),
-//                 ),
-//                 onChanged: (value) {
-//                   setState(() {
-//                     enteredAmount = double.tryParse(value);
-//                   });
-//                 },
-//               ),
-//               const SizedBox(height: 12),
-//               TextField(
-//                 decoration: InputDecoration(
-//                   labelText: 'Enter the code',
-//                   border: const OutlineInputBorder(),
-//                   errorText: widget.codeErrorMessage,
-//                 ),
-//                 onChanged: (value) {
-//                   setState(() {
-//                     widget.enteredCode = value;
-//                     widget.codeErrorMessage = null;
-//                   });
-//                 },
-//               ),
-//             ],
-
-//             const SizedBox(height: 24),
-//             Row(
-//               children: [
-//                 Expanded(
-//                   child: ElevatedButton(
-//                     onPressed: () => Navigator.pop(context),
-//                     child: const Text('Close'),
-//                   ),
-//                 ),
-//                 const SizedBox(width: 16),
-//                 if (localStatus == 'Pending' && !isGoalReached)
-//                   Expanded(
-//                     child: ElevatedButton(
-//                       onPressed:
-//                           (enteredAmount != null && enteredAmount! > 0)
-//                               ? _confirmDonation
-//                               : null,
-//                       child: const Text('Confirm Donation'),
-//                     ),
-//                   ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildDonationDetailItem(String title, String value) {
-//     return Padding(
-//       padding: const EdgeInsets.only(bottom: 4),
-//       child: Row(
-//         children: [
-//           Text('$title: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-//           Expanded(child: Text(value)),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class ShowDonationDetails extends StatefulWidget {
   ShowDonationDetails({
@@ -524,7 +29,7 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
   double progress = 0;
   bool isLoading = true;
 
-  double? enteredAmount; // donor input amount
+  double? enteredAmount; // donor’s input
 
   @override
   void initState() {
@@ -534,23 +39,25 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
   }
 
   Future<void> _fetchRequestProgress() async {
-    final request = await RequestService().getRequestById(
+    final req = await RequestService().getRequestById(
       widget.donation.requestId!,
     );
     setState(() {
-      donated = request.donatedAmount;
-      goal = request.goalAmount > 0 ? request.goalAmount : 1;
+      donated = req.donatedAmount;
+      goal = req.goalAmount > 0 ? req.goalAmount : 1;
       progress = donated / goal;
       isLoading = false;
     });
   }
 
   Future<void> _confirmDonation() async {
+    // 1) Validate confirmation code
     if (widget.enteredCode != widget.donation.confirmationCode) {
       setState(() => widget.codeErrorMessage = 'Incorrect code');
       return;
     }
 
+    // 2) Validate amount
     if (enteredAmount == null || enteredAmount! <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid amount')),
@@ -558,26 +65,71 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
       return;
     }
 
-    final request = await RequestService().getRequestById(
+    // 3) Fetch fresh request
+    final req = await RequestService().getRequestById(
       widget.donation.requestId!,
     );
+    final remainingAmount = req.goalAmount - req.donatedAmount;
 
-    final updatedAmount = request.donatedAmount + enteredAmount!;
-    final fulfilled = updatedAmount >= request.goalAmount;
+    if (remainingAmount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This request has already been fully funded!'),
+        ),
+      );
+      return;
+    }
 
+    if (enteredAmount! > remainingAmount) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'You can only donate up to \$${remainingAmount.toStringAsFixed(2)} to reach the goal.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final newTotal = req.donatedAmount + enteredAmount!;
+    final fulfilled = newTotal >= req.goalAmount;
+
+    // 4) Update the request table
     await RequestService().updateDonatedAmount(
-      request.id,
-      updatedAmount,
+      req.id,
+      newTotal,
       fulfilled ? 'Fulfilled' : 'Pending',
+      widget.enteredCode!,
+      fulfilled,
     );
 
+    // ✅ 5) Insert into the donation table
+    final response = await Supabase.instance.client.from('donation').insert({
+      'id': Uuid().v4(),
+      'donor_id': widget.donation.donorId,
+      'request_id': widget.donation.requestId,
+      'amountdonated': enteredAmount,
+    });
+
+    if (response.error != null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save donation: ${response.error!.message}'),
+        ),
+      );
+      return;
+    }
+
+    // 6) Update UI
     setState(() {
-      donated = updatedAmount;
-      progress = updatedAmount / goal;
+      donated = newTotal;
+      progress = newTotal / goal;
       localStatus = fulfilled ? 'Fulfilled' : 'Pending';
       widget.codeErrorMessage = null;
     });
-
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -586,14 +138,27 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
       ),
     );
 
-    if (fulfilled) {
-      Navigator.pop(context); // ✅ auto-close if fulfilled
-    }
+    // 7) Pop and return
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(
+      Donation(
+        id: widget.donation.id,
+        donorId: widget.donation.donorId,
+        requestId: widget.donation.requestId,
+        requestTitle: widget.donation.requestTitle,
+        amount: enteredAmount ?? 0.0,
+        date: widget.donation.date,
+        status: localStatus,
+        confirmationCode: widget.donation.confirmationCode,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return const Center(child: CircularProgressIndicator());
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     final isGoalReached = progress >= 1.0;
 
@@ -613,32 +178,25 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
             LinearProgressIndicator(value: progress),
             const SizedBox(height: 4),
             Text('${(progress * 100).toStringAsFixed(1)}% funded'),
-
             const SizedBox(height: 12),
-            _buildDonationDetailItem(
+
+            _buildDetailRow(
               'Current Donated',
               '\$${donated.toStringAsFixed(2)}',
             ),
-            _buildDonationDetailItem(
-              'Goal Amount',
-              '\$${goal.toStringAsFixed(2)}',
-            ),
-            _buildDonationDetailItem('Status', localStatus),
+            _buildDetailRow('Goal Amount', '\$${goal.toStringAsFixed(2)}'),
+            _buildDetailRow('Status', localStatus),
             const SizedBox(height: 12),
 
             if (localStatus == 'Pending' && !isGoalReached) ...[
-              const SizedBox(height: 12),
               TextField(
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: 'Enter donation amount',
                   border: OutlineInputBorder(),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    enteredAmount = double.tryParse(value);
-                  });
-                },
+                onChanged:
+                    (v) => setState(() => enteredAmount = double.tryParse(v)),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -647,12 +205,11 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
                   border: const OutlineInputBorder(),
                   errorText: widget.codeErrorMessage,
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    widget.enteredCode = value;
-                    widget.codeErrorMessage = null;
-                  });
-                },
+                onChanged:
+                    (v) => setState(() {
+                      widget.enteredCode = v;
+                      widget.codeErrorMessage = null;
+                    }),
               ),
             ],
 
@@ -684,12 +241,12 @@ class _ShowDonationDetailsState extends State<ShowDonationDetails> {
     );
   }
 
-  Widget _buildDonationDetailItem(String title, String value) {
+  Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text('$title: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
           Expanded(child: Text(value)),
         ],
       ),

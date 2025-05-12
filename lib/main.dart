@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_project/features/admin/admin_home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:mobile_project/core/theme/theme.dart';
@@ -35,6 +36,7 @@ class UnitedHopeApp extends StatelessWidget {
         AppRoutes.register: (context) => const RegisterScreen(),
         AppRoutes.donorHome: (context) => const DonationAllPage(),
         AppRoutes.recipientHome: (context) => const RecipientAllPages(),
+        AppRoutes.admin: (context) => const AdminHomeScreen(),
       },
       onUnknownRoute:
           (settings) => MaterialPageRoute(
