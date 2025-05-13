@@ -39,6 +39,20 @@ class _ShowRecipientRequestDetailsState
     }
   }
 
+  Future<void> deleteRequest(String requestId) async {
+    try {
+      await Supabase.instance.client
+          .from('request')
+          .delete()
+          .eq('id', requestId);
+
+      debugPrint("✅ Request deleted: $requestId");
+    } catch (e) {
+      debugPrint("Error deleting request: $e");
+      throw Exception("Failed to delete request");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -88,6 +102,11 @@ class _ShowRecipientRequestDetailsState
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           Text(widget.request.description),
+          const SizedBox(height: 16),
+          Text(
+            'Confirmation Code: ${widget.request.confirmationCode}',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           Row(
             children: [
@@ -100,14 +119,47 @@ class _ShowRecipientRequestDetailsState
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Request Deleted successfully!'),
-                      ),
+                  onPressed: () async {
+                    final confirmed = await showDialog(
+                      context: context,
+                      builder:
+                          (_) => AlertDialog(
+                            title: const Text('Confirm Deletion'),
+                            content: const Text(
+                              'Are you sure you want to delete this request?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                ),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
                     );
+
+                    if (confirmed == true) {
+                      try {
+                        await deleteRequest(widget.request.id);
+                        Navigator.pop(context); // close the bottom sheet
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Request deleted successfully!'),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error deleting request: $e')),
+                        );
+                      }
+                    }
                   },
 
                   child: const Text('Delete'),

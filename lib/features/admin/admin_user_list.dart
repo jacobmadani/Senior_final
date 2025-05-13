@@ -1,28 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_project/core/models/user_profile.dart';
+import 'package:mobile_project/core/services/auth_services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AdminUserListScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> users = [
-    {
-      'name': 'Jane Doe',
-      'email': 'jane@example.com',
-      'type': 'donor',
-      'status': 'active',
-    },
-    {
-      'name': 'Ali Youssef',
-      'email': 'ali@site.com',
-      'type': 'recipient',
-      'status': 'flagged',
-    },
-    {
-      'name': 'Scam User',
-      'email': 'scam@fake.com',
-      'type': 'scammer',
-      'status': 'banned',
-    },
-  ];
+class AdminUserListScreen extends StatefulWidget {
+  const AdminUserListScreen({super.key});
 
-  AdminUserListScreen({super.key});
+  @override
+  State<AdminUserListScreen> createState() => _AdminUserListScreenState();
+}
+
+class _AdminUserListScreenState extends State<AdminUserListScreen> {
+  final AuthServices authServices = AuthServices(Supabase.instance.client);
+  List<UserProfile> users = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsers();
+  }
+
+  Future<void> fetchUsers() async {
+    final response = await Supabase.instance.client.from('profiles').select();
+
+    final List<UserProfile> loadedUsers =
+        (response as List).map((user) {
+          return UserProfile(
+            name: user['name'] ?? '',
+            email: user['email'] ?? '',
+            phone: user['number'] ?? '',
+            usertype: user['type'] ?? '',
+            userId: user['id'],
+          );
+        }).toList();
+
+    setState(() {
+      users = loadedUsers;
+      isLoading = false;
+    });
+  }
+
+  Future<void> deleteUser(String userId) async {
+    try {
+      final result = await Supabase.instance.client
+          .from('profiles')
+          .delete()
+          .eq('id', userId);
+
+      // `result` is typically a List or null if nothing matched.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User deleted from profiles')),
+      );
+
+      fetchUsers(); // refresh the list
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+    }
+  }
+
+  Future<void> deleteUserFromAuth(String userId) async {
+    try {
+      final response = await Supabase.instance.client.functions.invoke(
+        'delete-user',
+        body: {'user_id': userId},
+      );
+
+      if (response.status == 200) {
+        debugPrint('User deleted from auth.');
+      } else {
+        debugPrint('Auth deletion failed: ${response.data}');
+        throw Exception('Auth deletion failed: ${response.data}');
+      }
+    } catch (e) {
+      debugPrint('Error in deleteUserFromAuth: $e');
+      rethrow;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,137 +89,152 @@ class AdminUserListScreen extends StatelessWidget {
         elevation: 0,
       ),
       backgroundColor: Colors.grey[100],
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView.separated(
-          itemCount: users.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final user = users[index];
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Padding(
+                padding: const EdgeInsets.all(16),
+                child: ListView.separated(
+                  itemCount: users.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final user = users[index];
 
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Header: Name & Email
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.person_outline, size: 28),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            /// Header: Name & Email
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  user['name'],
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                                Row(
+                                  children: [
+                                    const Icon(Icons.person_outline, size: 28),
+                                    const SizedBox(width: 8),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          user.name,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          user.email,
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Tooltip(
+                                  message: 'Delete User',
+                                  child: IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    color: Colors.red,
+                                    onPressed: () async {
+                                      final confirmed = await showDialog(
+                                        context: context,
+                                        builder:
+                                            (_) => AlertDialog(
+                                              title: const Text(
+                                                'Confirm Deletion',
+                                              ),
+                                              content: Text(
+                                                'Are you sure you want to delete ${user.name}?',
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  child: const Text('Cancel'),
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                        false,
+                                                      ),
+                                                ),
+                                                TextButton(
+                                                  child: const Text('Delete'),
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                        true,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                      );
+
+                                      if (confirmed == true) {
+                                        try {
+                                          await deleteUser(
+                                            user.userId!,
+                                          ); // from profiles
+                                          await deleteUserFromAuth(
+                                            user.userId!,
+                                          ); // from auth
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'User fully deleted',
+                                              ),
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Deletion failed: $e',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
                                   ),
                                 ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            /// Role
+                            Row(
+                              children: [
+                                const Icon(Icons.badge_outlined),
+                                const SizedBox(width: 4),
                                 Text(
-                                  user['email'],
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
+                                  "Type: ${user.usertype}",
+                                  style: const TextStyle(fontSize: 14),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        Chip(
-                          label: Text(
-                            user['status'],
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          backgroundColor: _getStatusColor(user['status']),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    /// Role + Actions
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.badge_outlined),
-                            const SizedBox(width: 4),
-                            Text(
-                              "Type: ${user['type']}",
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Tooltip(
-                              message: 'View User',
-                              child: IconButton(
-                                icon: const Icon(Icons.visibility),
-                                onPressed: () {
-                                  // View logic
-                                },
-                              ),
-                            ),
-                            Tooltip(
-                              message: 'Ban User',
-                              child: IconButton(
-                                icon: const Icon(Icons.block),
-                                color: Colors.red,
-                                onPressed: () {
-                                  // Ban logic
-                                },
-                              ),
-                            ),
-                            Tooltip(
-                              message: 'Promote User',
-                              child: IconButton(
-                                icon: const Icon(Icons.upgrade),
-                                color: Colors.indigo,
-                                onPressed: () {
-                                  // Promote logic
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    );
+                  },
                 ),
               ),
-            );
-          },
-        ),
-      ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'active':
-        return Colors.green.shade100;
-      case 'flagged':
-        return Colors.orange.shade100;
-      case 'banned':
-        return Colors.red.shade100;
-      default:
-        return Colors.grey.shade300;
-    }
   }
 }

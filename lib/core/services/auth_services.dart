@@ -11,6 +11,52 @@ class AuthServices {
 
   Session? get currentUserSession => supabaseClient.auth.currentSession;
 
+  // Future<void> loginWithEmailPassword({
+  //   required String email,
+  //   required String password,
+  //   required BuildContext context,
+  // }) async {
+  //   try {
+  //     final response = await supabaseClient.auth.signInWithPassword(
+  //       password: password,
+  //       email: email,
+  //     );
+
+  //     if (response.user == null) {
+  //       throw 'User is null!';
+  //     }
+
+  //     // Fetch the usertype from the profiles table
+  //     final userData =
+  //         await supabaseClient
+  //             .from('profiles')
+  //             .select('type')
+  //             .eq('id', response.user!.id)
+  //             .single();
+
+  //     if (userData['type'] == null) {
+  //       throw 'User type not found!';
+  //     }
+
+  //     final userType = userData['type'];
+
+  //     // Navigate based on usertype
+  //     switch (userType) {
+  //       case 'donor':
+  //         Navigator.pushReplacementNamed(context, AppRoutes.donorHome);
+  //         break;
+  //       case 'recipient':
+  //         Navigator.pushReplacementNamed(context, AppRoutes.recipientHome);
+  //         break;
+  //       default:
+  //         throw 'Unknown user type!';
+  //     }
+  //   } on AuthException catch (e) {
+  //     throw e.message;
+  //   } catch (e) {
+  //     throw e.toString();
+  //   }
+  // }
   Future<void> loginWithEmailPassword({
     required String email,
     required String password,
@@ -26,7 +72,22 @@ class AuthServices {
         throw 'User is null!';
       }
 
-      // Fetch the usertype from the profiles table
+      final userEmail = response.user!.email;
+
+      // 1. Check if the email exists in the admin table
+      final isAdmin =
+          await supabaseClient
+              .from('admin')
+              .select()
+              .eq('email', userEmail!)
+              .maybeSingle();
+
+      if (isAdmin != null) {
+        Navigator.pushReplacementNamed(context, AppRoutes.admin);
+        return;
+      }
+
+      // 2. If not admin, check user type
       final userData =
           await supabaseClient
               .from('profiles')
@@ -43,7 +104,7 @@ class AuthServices {
       // Navigate based on usertype
       switch (userType) {
         case 'donor':
-          Navigator.pushReplacementNamed(context, AppRoutes.admin);
+          Navigator.pushReplacementNamed(context, AppRoutes.donorHome);
           break;
         case 'recipient':
           Navigator.pushReplacementNamed(context, AppRoutes.recipientHome);

@@ -80,7 +80,7 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
                       if (donationRow != null) {
                         // donor already donated → show SavedDonationSheet
                         final donatedAmount =
-                            donationRow['amountdonated'] as double;
+                            (donationRow['amountdonated'] as num).toDouble();
 
                         // Create Donation object to pass to SavedDonationSheet
                         final donation = Donation(

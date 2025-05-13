@@ -3,7 +3,13 @@ class UserProfile {
   String name;
   String email;
   String phone;
-  UserProfile({required this.name, required this.email, required this.phone});
-
-
+  String? usertype;
+  String? userId;
+  UserProfile({
+    required this.name,
+    required this.email,
+    required this.phone,
+    this.usertype,
+    this.userId,
+  });
 }

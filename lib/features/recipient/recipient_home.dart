@@ -4,7 +4,8 @@ import 'package:mobile_project/core/utils/constants.dart';
 import 'package:mobile_project/core/widgets/request_card.dart';
 
 import 'package:mobile_project/features/recipient/create_request.dart';
-import 'package:mobile_project/features/recipient/recipient_imports.dart';
+import 'package:mobile_project/features/recipient/search.dart';
+import 'package:mobile_project/features/recipient/show_request_details.dart';
 
 class RecipientHomeScreen extends StatefulWidget {
   const RecipientHomeScreen({super.key});
@@ -23,6 +24,23 @@ class _RecipientHomeScreenState extends State<RecipientHomeScreen> {
       appBar: AppBar(
         title: const Text('My Requests'),
         automaticallyImplyLeading: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () async {
+              final snapshot = await requestService.getRequestStream().first;
+
+              if (context.mounted) {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SearchRequestScreen(requests: snapshot),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -60,9 +78,7 @@ class _RecipientHomeScreenState extends State<RecipientHomeScreen> {
                       context: context,
                       isScrollControlled: true,
                       builder: (context) {
-                        return ShowRecipeintRequestDetails(
-                          request: requests[index],
-                        );
+                        return ShowRequestDetails(request: requests[index]);
                       },
                     );
                   },

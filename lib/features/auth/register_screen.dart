@@ -48,6 +48,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         case 'recipient':
           Navigator.pushReplacementNamed(context, AppRoutes.recipientHome);
           break;
+        case 'admin':
+          Navigator.pushReplacementNamed(context, AppRoutes.admin);
       }
     } catch (e) {
       // Show error to user using snackbar or dialog

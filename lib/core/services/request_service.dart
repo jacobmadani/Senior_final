@@ -106,4 +106,23 @@ class RequestService {
       );
     }
   }
+
+  Future<void> deleteRequest(String requestId) async {
+    final response = await Supabase.instance.client
+        .from('request')
+        .delete()
+        .eq('id', requestId);
+
+    if (response == null) {
+      throw Exception('Failed to delete the request.');
+    }
+  }
+
+  Future<void> addCodeForUnpaidRequest(String requestId, String code) async {
+    await Supabase.instance.client.from('coderequest').insert({
+      'request_id': requestId,
+      'code': code,
+      'time_stamp': DateTime.now().toIso8601String(),
+    });
+  }
 }
