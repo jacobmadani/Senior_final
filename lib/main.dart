@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_project/features/admin/admin_home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:mobile_project/core/theme/theme.dart';
@@ -9,10 +8,11 @@ import 'package:mobile_project/core/widgets/recipient_all_pages.dart';
 import 'package:mobile_project/features/auth/login_screen.dart';
 import 'package:mobile_project/features/auth/register_screen.dart';
 import 'package:mobile_project/features/splash/splash_screen.dart';
+import 'package:mobile_project/features/admin/admin_home.dart';
 
-void main() async {
+Future<void> main() async {
   await Supabase.initialize(
-    url: 'https://wmcwbyprpsmfhbcbryje.supabase.co',
+    url: "https://wmcwbyprpsmfhbcbryje.supabase.co",
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtY3dieXBycHNtZmhiY2JyeWplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjQyMDMsImV4cCI6MjA2MTk0MDIwM30.hg2juPoCQmaaQpLI_RI3OZo0n6v1eJxLsy9OQhkcZyY',
   );

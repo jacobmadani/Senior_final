@@ -24,62 +24,130 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
   }
 
   Future<void> fetchUsers() async {
-    final response = await Supabase.instance.client.from('profiles').select();
+    try {
+      final response = await Supabase.instance.client.from('profiles').select();
 
-    final List<UserProfile> loadedUsers =
-        (response as List).map((user) {
-          return UserProfile(
-            name: user['name'] ?? '',
-            email: user['email'] ?? '',
-            phone: user['number'] ?? '',
-            usertype: user['type'] ?? '',
-            userId: user['id'],
-          );
-        }).toList();
+      final List<UserProfile> loadedUsers =
+          (response as List).map((user) {
+            return UserProfile(
+              name: user['name'] ?? '',
+              email: user['email'] ?? '',
+              phone: user['number'] ?? '',
+              usertype: user['type'] ?? '',
+              userId: user['id'],
+            );
+          }).toList();
 
-    setState(() {
-      users = loadedUsers;
-      isLoading = false;
-    });
+      setState(() {
+        users = loadedUsers;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching users: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load users: $e')));
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> deleteUser(String userId) async {
     try {
-      // ignore: unused_local_variable
+      print('Deleting user from profiles table. User ID: $userId');
+
+      // Delete from profiles table
       final result = await Supabase.instance.client
           .from('profiles')
           .delete()
           .eq('id', userId);
 
-      // `result` is typically a List or null if nothing matched.
+      print('Delete profile result: $result');
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User deleted from profiles')),
       );
-
-      fetchUsers(); // refresh the list
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+      debugPrint('Error deleting user from profiles: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete from profiles: $e')),
+      );
+      rethrow;
     }
   }
 
   Future<void> deleteUserFromAuth(String userId) async {
     try {
+      print('Attempting to delete user from auth. User ID: $userId');
+
+      // Validate the user ID
+      if (userId == null || userId.isEmpty) {
+        throw Exception('User ID is null or empty');
+      }
+
+      // Check if ID is in UUID format (contains hyphens and is the right length)
+      if (!userId.contains('-') || userId.length < 30) {
+        print('Warning: User ID may not be in proper UUID format: $userId');
+      }
+
+      // Call the Edge Function to delete the user from auth
       final response = await Supabase.instance.client.functions.invoke(
         'delete-user',
+        method: HttpMethod.post,
         body: {'user_id': userId},
       );
 
-      if (response.status == 200) {
-        debugPrint('User deleted from auth.');
-      } else {
-        debugPrint('Auth deletion failed: ${response.data}');
-        throw Exception('Auth deletion failed: ${response.data}');
+      print('Edge function response: ${response.data}');
+
+      // Check if the function call was successful
+      if (response.status != 200) {
+        final errorData =
+            response.data is Map ? response.data : {'error': 'Unknown error'};
+        throw Exception(
+          'Function error: ${errorData['error'] ?? 'Unknown error'}',
+        );
       }
+
+      print('Successfully deleted user from auth. User ID: $userId');
     } catch (e) {
-      debugPrint('Error in deleteUserFromAuth: $e');
+      debugPrint('Error deleting user from auth: $e');
       rethrow;
+    }
+  }
+
+  Future<void> completeUserDeletion(UserProfile user) async {
+    try {
+      if (user.userId == null || user.userId!.isEmpty) {
+        throw Exception('User ID is missing');
+      }
+
+      print(
+        'Starting complete deletion process for user: ${user.name} (ID: ${user.userId})',
+      );
+
+      // Step 1: Delete from profiles table first
+      await deleteUser(user.userId!);
+      print('✅ Successfully deleted user from profiles table');
+
+      // Step 2: Delete from auth table via Edge Function
+      await deleteUserFromAuth(user.userId!);
+      print('✅ Successfully deleted user from auth table');
+
+      // Success notification
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User completely deleted from both profiles and auth'),
+        ),
+      );
+
+      // Refresh the user list
+      fetchUsers();
+    } catch (e) {
+      print('❌ Error during complete user deletion: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('User deletion failed: $e')));
     }
   }
 
@@ -95,6 +163,8 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
       body:
           isLoading
               ? const Center(child: CircularProgressIndicator())
+              : users.isEmpty
+              ? const Center(child: Text('No users found'))
               : Padding(
                 padding: const EdgeInsets.all(16),
                 child: ListView.separated(
@@ -116,35 +186,51 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            /// Header: Name & Email
+                            /// Header: Name & Email with ID
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.person_outline, size: 28),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          user.name,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.person_outline,
+                                        size: 28,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              user.name,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              user.email,
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 14,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              'ID: ${user.userId}',
+                                              style: TextStyle(
+                                                color: Colors.grey[400],
+                                                fontSize: 12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          user.email,
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 Tooltip(
                                   message: 'Delete User',
@@ -160,7 +246,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                                 'Confirm Deletion',
                                               ),
                                               content: Text(
-                                                'Are you sure you want to delete ${user.name}?',
+                                                'Are you sure you want to delete ${user.name}?\n\nThis will remove the user from both the profiles table and auth system.\n\nUser ID: ${user.userId}',
                                               ),
                                               actions: [
                                                 TextButton(
@@ -172,6 +258,9 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                                       ),
                                                 ),
                                                 TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    foregroundColor: Colors.red,
+                                                  ),
                                                   child: const Text('Delete'),
                                                   onPressed:
                                                       () => Navigator.pop(
@@ -184,33 +273,8 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                       );
 
                                       if (confirmed == true) {
-                                        try {
-                                          await deleteUser(
-                                            user.userId!,
-                                          ); // from profiles
-                                          await deleteUserFromAuth(
-                                            user.userId!,
-                                          ); // from auth
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'User fully deleted',
-                                              ),
-                                            ),
-                                          );
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Deletion failed: $e',
-                                              ),
-                                            ),
-                                          );
-                                        }
+                                        // Use the complete deletion method
+                                        await completeUserDeletion(user);
                                       }
                                     },
                                   ),

@@ -46,8 +46,8 @@ class _AdminRequestListState extends State<AdminRequestList> {
             itemBuilder: (context, index) {
               return RequestCard(
                 request: requests[index],
-                onTap: () {
-                  showModalBottomSheet(
+                onTap: () async {
+                  final result = await showModalBottomSheet<bool>(
                     context: context,
                     isScrollControlled: true,
                     builder: (context) {
@@ -56,6 +56,13 @@ class _AdminRequestListState extends State<AdminRequestList> {
                       );
                     },
                   );
+
+                  if (result == true && mounted) {
+                    setState(() => isRefreshing = true);
+                    await Future.delayed(const Duration(milliseconds: 500));
+                    await requestService.refreshRequests();
+                    setState(() => isRefreshing = false);
+                  }
                 },
               );
             },
@@ -65,4 +72,3 @@ class _AdminRequestListState extends State<AdminRequestList> {
     );
   }
 }
-
