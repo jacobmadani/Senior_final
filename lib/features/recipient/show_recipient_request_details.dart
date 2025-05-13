@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 part of 'recipient_imports.dart';
 
 class ShowRecipeintRequestDetails extends StatefulWidget {
@@ -20,15 +22,12 @@ class _ShowRecipientRequestDetailsState
   }
 
   Future<void> _fetchRecipient() async {
-    print('Fetching recipient for id: ${widget.request.recipientId}');
     final response =
         await Supabase.instance.client
             .from('recipient')
             .select('id,name, number')
             .eq('id', widget.request.recipientId)
             .maybeSingle();
-
-    print('Recipient response: $response');
 
     if (mounted) {
       setState(() {
@@ -147,7 +146,10 @@ class _ShowRecipientRequestDetailsState
                     if (confirmed == true) {
                       try {
                         await deleteRequest(widget.request.id);
-                        Navigator.pop(context); // close the bottom sheet
+                        Navigator.pop(
+                          context,
+                          true,
+                        ); // ✅ signal to parent to refresh
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

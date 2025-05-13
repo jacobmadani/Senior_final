@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/models/donation.dart';
 import 'package:mobile_project/core/models/request_model.dart';
@@ -19,6 +21,11 @@ class SavedDonationPage extends StatefulWidget {
 class _SavedDonationPageState extends State<SavedDonationPage> {
   final SavedDonationService _savedRequestService = SavedDonationService();
   bool isRefreshing = false;
+  Future<void> refreshPage() async {
+    setState(() => isRefreshing = true);
+    await Future.delayed(const Duration(seconds: 1)); // simulate refresh
+    setState(() => isRefreshing = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +46,7 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
       child: StreamBuilder<List<SavedDonation>>(
         stream: _savedRequestService.getSavedRequestStream(donorId),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+          if (isRefreshing || !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -64,8 +71,7 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
                   return RequestCard(
                     request: request,
                     onTap: () async {
-                      final modalContext =
-                          context; // ✅ capture context BEFORE await
+                      final modalContext = context;
 
                       final donationRow =
                           await Supabase.instance.client
@@ -73,18 +79,17 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
                               .select()
                               .eq('donor_id', saved.donorId)
                               .eq('request_id', saved.requestId)
+                              .limit(1)
                               .maybeSingle();
 
-                      if (!mounted) return; // ✅ check mounted after async
+                      if (!mounted) return;
 
                       if (donationRow != null) {
-                        // donor already donated → show SavedDonationSheet
                         final donatedAmount =
                             (donationRow['amountdonated'] as num).toDouble();
 
-                        // Create Donation object to pass to SavedDonationSheet
                         final donation = Donation(
-                          id: donationRow['id'], // if stored in db, otherwise saved.id
+                          id: donationRow['id'],
                           donorId: saved.donorId,
                           requestId: saved.requestId,
                           requestTitle: request.title,
@@ -94,24 +99,28 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
                           confirmationCode: request.confirmationCode,
                         );
 
-                        showModalBottomSheet(
-                          context: modalContext, // ✅ use captured context
+                        await showModalBottomSheet(
+                          context: modalContext,
                           isScrollControlled: true,
                           builder:
                               (_) => SavedDonationSheet(
                                 donatedAmount: donation,
                                 onRemove: () async {
-                                  await _savedRequestService.removeSavedRequest(
-                                    saved.donorId,
-                                    saved.requestId,
-                                  );
-                                  if (!mounted) return;
-                                  setState(() {}); // refresh after removal
+                                  await Supabase.instance.client
+                                      .from('savedrequest')
+                                      .delete()
+                                      .eq('donor_id', saved.donorId)
+                                      .eq('request_id', saved.requestId);
+
+                                  if (mounted) {
+                                    setState(
+                                      () {},
+                                    ); // refresh UI after modal closes
+                                  }
                                 },
                               ),
                         );
                       } else {
-                        // donor hasn’t donated yet → show donation details
                         final donation = Donation(
                           id: saved.id,
                           donorId: saved.donorId,
@@ -122,9 +131,8 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
                           status: request.status,
                           confirmationCode: request.confirmationCode,
                         );
-
-                        showModalBottomSheet(
-                          context: modalContext, // ✅ use captured context
+                        final deletedOrConfirmed = await showModalBottomSheet(
+                          context: modalContext,
                           isScrollControlled: true,
                           builder:
                               (_) => ShowDonationDetails(
@@ -134,6 +142,10 @@ class _SavedDonationPageState extends State<SavedDonationPage> {
                                 donationStatus: request.status,
                               ),
                         );
+
+                        if (deletedOrConfirmed != null && mounted) {
+                          await refreshPage(); // ✅ refresh after confirm OR delete
+                        }
                       }
                     },
                   );

@@ -11,7 +11,6 @@ class Request {
   final double donatedAmount;
   final double goalAmount;
   final String confirmationCode;
-
   Request({
     required this.id,
     required this.recipientId,

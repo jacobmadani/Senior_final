@@ -11,7 +11,10 @@ class RecipientAllPages extends StatelessWidget {
   Widget build(BuildContext context) {
     List<BottomNavigationBarItem> bottomNavItems = [
       BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Requests'),
-      BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Requests'),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.list_sharp),
+        label: 'My Requests',
+      ),
       BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
     ];
     List<Widget> pages = [

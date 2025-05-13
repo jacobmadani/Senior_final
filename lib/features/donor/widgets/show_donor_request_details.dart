@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 part of 'package:mobile_project/features/donor/widgets/donar_imports.dart';
 
 class ShowDonorRequestDetails extends StatefulWidget {
@@ -19,15 +21,12 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
   }
 
   Future<void> _fetchRecipient() async {
-    print('Fetching recipient for id: ${widget.request.recipientId}');
     final response =
         await Supabase.instance.client
             .from('recipient')
             .select('id,name, number')
             .eq('id', widget.request.recipientId)
             .maybeSingle();
-
-    print('Recipient response: $response');
 
     if (mounted) {
       setState(() {
@@ -108,12 +107,33 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
                           content: Text('You must be logged in to save.'),
                         ),
                       );
+
                       return;
                     }
 
                     final savedDonationService = SavedDonationService();
 
                     try {
+                      // ✅ Check if the request is already saved
+                      final existing =
+                          await Supabase.instance.client
+                              .from('savedrequest')
+                              .select()
+                              .eq('donor_id', userId)
+                              .eq('request_id', widget.request.id)
+                              .maybeSingle();
+
+                      if (existing != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('You already saved this donation.'),
+                          ),
+                        );
+                        Navigator.pop(context);
+                        return;
+                      }
+
+                      // ✅ Save it
                       await savedDonationService.ensureDonorExists();
                       await savedDonationService.saveRequest(
                         userId,
@@ -122,20 +142,17 @@ class _ShowDonorRequestDetailsState extends State<ShowDonorRequestDetails> {
 
                       if (!mounted) return;
                       Navigator.pop(context);
-
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Request saved to your donations!'),
                         ),
                       );
                     } catch (e) {
-                      print('Error saving request: ${e.toString()}');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Failed to save request: $e')),
                       );
                     }
                   },
-
                   child: const Text('Add to Donations'),
                 ),
               ),

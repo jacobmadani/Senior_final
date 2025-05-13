@@ -22,7 +22,7 @@ class _RecipientHomeScreenState extends State<RecipientHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Requests'),
+        title: const Text('Available Requests'),
         automaticallyImplyLeading: true,
         actions: [
           IconButton(

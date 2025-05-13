@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/utils/routes.dart';
 import 'package:mobile_project/core/services/auth_services.dart';
@@ -38,7 +40,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         phone: _phoneController.text.trim(),
         usertype: _userType, // this should now reflect the current selection
       );
-      print('Sending user_type: $_userType');
 
       // Only navigate AFTER sign-up is complete
       switch (_userType) {

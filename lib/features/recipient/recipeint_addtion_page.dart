@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/models/request_model.dart';
 import 'package:mobile_project/core/services/request_service.dart';
@@ -37,7 +39,6 @@ class _RecipientRequestsPageState extends State<RecipientRequestsPage> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      print(e.toString());
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to load requests: $e')));
@@ -61,15 +62,20 @@ class _RecipientRequestsPageState extends State<RecipientRequestsPage> {
                   itemBuilder: (context, index) {
                     return RequestCard(
                       request: _requests[index],
-                      onTap:
-                          () => showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder:
-                                (context) => ShowRecipeintRequestDetails(
-                                  request: _requests[index],
-                                ),
-                          ),
+                      onTap: () async {
+                        final shouldRefresh = await showModalBottomSheet<bool>(
+                          context: context,
+                          isScrollControlled: true,
+                          builder:
+                              (_) => ShowRecipeintRequestDetails(
+                                request: _requests[index],
+                              ),
+                        );
+
+                        if (shouldRefresh == true && mounted) {
+                          await _loadRequests(); // ✅ refresh the list after deletion
+                        }
+                      },
                     );
                   },
                 ),

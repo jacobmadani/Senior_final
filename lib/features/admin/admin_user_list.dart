@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/models/user_profile.dart';
 import 'package:mobile_project/core/services/auth_services.dart';
@@ -43,6 +45,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
 
   Future<void> deleteUser(String userId) async {
     try {
+      // ignore: unused_local_variable
       final result = await Supabase.instance.client
           .from('profiles')
           .delete()

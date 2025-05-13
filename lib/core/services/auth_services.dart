@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:mobile_project/core/models/user_profile_model.dart';
 import 'package:mobile_project/core/utils/routes.dart';
@@ -10,53 +12,6 @@ class AuthServices {
   AuthServices(this.supabaseClient);
 
   Session? get currentUserSession => supabaseClient.auth.currentSession;
-
-  // Future<void> loginWithEmailPassword({
-  //   required String email,
-  //   required String password,
-  //   required BuildContext context,
-  // }) async {
-  //   try {
-  //     final response = await supabaseClient.auth.signInWithPassword(
-  //       password: password,
-  //       email: email,
-  //     );
-
-  //     if (response.user == null) {
-  //       throw 'User is null!';
-  //     }
-
-  //     // Fetch the usertype from the profiles table
-  //     final userData =
-  //         await supabaseClient
-  //             .from('profiles')
-  //             .select('type')
-  //             .eq('id', response.user!.id)
-  //             .single();
-
-  //     if (userData['type'] == null) {
-  //       throw 'User type not found!';
-  //     }
-
-  //     final userType = userData['type'];
-
-  //     // Navigate based on usertype
-  //     switch (userType) {
-  //       case 'donor':
-  //         Navigator.pushReplacementNamed(context, AppRoutes.donorHome);
-  //         break;
-  //       case 'recipient':
-  //         Navigator.pushReplacementNamed(context, AppRoutes.recipientHome);
-  //         break;
-  //       default:
-  //         throw 'Unknown user type!';
-  //     }
-  //   } on AuthException catch (e) {
-  //     throw e.message;
-  //   } catch (e) {
-  //     throw e.toString();
-  //   }
-  // }
   Future<void> loginWithEmailPassword({
     required String email,
     required String password,

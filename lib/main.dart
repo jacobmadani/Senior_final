@@ -10,24 +10,13 @@ import 'package:mobile_project/features/auth/login_screen.dart';
 import 'package:mobile_project/features/auth/register_screen.dart';
 import 'package:mobile_project/features/splash/splash_screen.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   await Supabase.initialize(
     url: 'https://wmcwbyprpsmfhbcbryje.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtY3dieXBycHNtZmhiY2JyeWplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjQyMDMsImV4cCI6MjA2MTk0MDIwM30.hg2juPoCQmaaQpLI_RI3OZo0n6v1eJxLsy9OQhkcZyY',
   );
-  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-    final event = data.event;
-    final session = data.session;
 
-    if (event == AuthChangeEvent.signedOut || session == null) {
-      navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        AppRoutes.login,
-        (route) => false,
-      );
-    }
-  });
   runApp(const UnitedHopeApp());
 }
 
@@ -37,7 +26,6 @@ class UnitedHopeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: navigatorKey,
       title: 'United Hope',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

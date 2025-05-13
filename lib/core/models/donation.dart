@@ -19,26 +19,4 @@ class Donation {
     this.requestId,
     this.confirmationCode,
   });
-
-  Donation copyWith({
-    String? id,
-    String? requestTitle,
-    double? amount,
-    DateTime? date,
-    String? status,
-    String? donorId,
-    String? requestId,
-    String? confirmationCode,
-  }) {
-    return Donation(
-      id: id ?? this.id,
-      requestTitle: requestTitle ?? this.requestTitle,
-      amount: amount ?? this.amount,
-      date: date ?? this.date,
-      status: status ?? this.status,
-      donorId: donorId ?? this.donorId,
-      requestId: requestId ?? this.requestId,
-      confirmationCode: confirmationCode ?? this.confirmationCode,
-    );
-  }
 }
